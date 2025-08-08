@@ -1,0 +1,21 @@
+{
+    "compilerOptions": {
+        "declaration": true,
+        "target": "es5",
+        "module": "commonjs",
+        "moduleResolution": "node",
+        "outDir": "./",
+        "rootDir": "./_src/",
+        "experimentalDecorators": true,
+        "lib": ["es2020", "dom"],
+        "types": ["node"],
+
+        "resolveJsonModule":true,
+        "noImplicitAny": true,
+        "esModuleInterop": true,
+        "sourceMap": true,
+        "baseUrl": "."
+    },
+    "include": ["_src/**/*"],
+    "exclude": ["node_modules"]
+}
