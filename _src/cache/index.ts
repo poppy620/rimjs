@@ -64,6 +64,8 @@ export function promiseCache<T = any>(getFn: getDataFn, eTime: number = 0, getKe
 
             if (cache.inited < 1) {
                 cache.inited = 1
+                // 补齐时间
+                cache.date = new Date().getTime()
                 getFn(function(data, inited) {
                     cache.setData(data, inited)
                 }, para)

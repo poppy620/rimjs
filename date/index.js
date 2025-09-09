@@ -14,7 +14,7 @@ function wipeOut(date, isWipe) {
         var d = date.getDate();
         return new Date(y + "/" + m + "/" + d);
     }
-    return new Date(date.getTime());
+    return date;
 }
 /**
  * 新建一个时间对象
@@ -33,32 +33,43 @@ function parseDate(date, isWipe) {
     }
     // 日期
     if (date instanceof Date) {
-        return wipeOut(date, isWipe);
+        return wipeOut(new Date(date.getTime()), isWipe);
     }
     // 时间戳
     if (typeof date == "number") {
         return wipeOut(new Date(date), isWipe);
     }
-    var gmt = "";
-    date = date.trim().replace(/\s*GMT(?:[+-]\d{1,4})?$/i, function (match) {
-        gmt = " " + match.trim().toUpperCase();
-        return "";
-    });
-    if (/^\d{13,}$/.test(date)) {
-        date = parseInt(date);
-        if (gmt) {
-            return parseDate(getDate(date, "YYYY/MM/DD hh:mm:ss") + gmt, isWipe);
-        }
-        return wipeOut(new Date(date), isWipe);
-    }
+    var ms = 0;
     if (!/Z$/i.test(date)) {
-        date = date
-            .replace(/^(\d{4})[-/]?(\d{1,2})[-/]?(\d{1,2})?[Tt+\s]?(\d{1,2})?:?(\d{1,2})?:?(\d{1,2})?(?:\.[\d]+)?(\+[\d]+)?$/, function (str, Y, M, D, h, m, s, g) {
-            return Y + "/" + M + "/" + (D || "00") + " " + (h || "00") + ":" + (m || "00") + ":" + (s || "00") + (g ? " GMT" + g : "");
-        });
+        // 数字转化为毫秒
+        var dateArr = date.match(/^(\d{13,})\s*(?:[Gg][Mm][Tt])?([+-][\d]{2}:?(?:[\d]{2})?)?$/);
+        if (dateArr) {
+            var dayTime = parseInt(dateArr[1]);
+            if (dateArr[2]) {
+                var day = new Date(dayTime);
+                var val_1 = new Date(day.getFullYear() + "/" + (day.getMonth() + 1) + "/" + day.getDate() + " " + day.getHours() + ":" + day.getMinutes() + ":" + day.getSeconds() + dateArr[2]);
+                val_1.setMilliseconds(day.getMilliseconds());
+                return parseDate(val_1, isWipe);
+            }
+            return wipeOut(new Date(dayTime), isWipe);
+        }
+        // 特殊格式使用统一的
+        dateArr = date.match(/^(?:#)?(\d{4})[-/]?(\d{1,2})?[-/]?(\d{1,2})?[Tt+\s]?(\d{1,2})?:?(\d{1,2})?:?(\d{1,2})?(?:\.?([\d]{1,3}))?\s*(?:[Gg][Mm][Tt])?([+-][\d]{2}:?(?:[\d]{2})?)?$/);
+        if (dateArr) {
+            var Y = dateArr[1], M = dateArr[2], D = dateArr[3], h = dateArr[4], m = dateArr[5], s = dateArr[6], mms = dateArr[7], gmt = dateArr[8];
+            ms = parseInt(mms) || 0;
+            date = Y + "/" + (M || "01") + "/" + (D || "01") + " " + (h || "00") + ":" + (m || "00") + ":" + (s || "00") + (gmt ? " " + gmt : "");
+        }
     }
     // 防止报错
-    return wipeOut(new Date(date + gmt), isWipe);
+    var val = new Date(date);
+    if (!isWipe) {
+        if (ms) {
+            val.setMilliseconds(ms);
+        }
+        return val;
+    }
+    return wipeOut(val, isWipe);
 }
 exports.parseDate = parseDate;
 // 格式化

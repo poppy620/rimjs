@@ -55,6 +55,8 @@ function promiseCache(getFn, eTime, getKey) {
             cache.backs.push(resolve);
             if (cache.inited < 1) {
                 cache.inited = 1;
+                // 补齐时间
+                cache.date = new Date().getTime();
                 getFn(function (data, inited) {
                     cache.setData(data, inited);
                 }, para);

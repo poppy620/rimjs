@@ -11,7 +11,7 @@ function wipeOut(date: Date, isWipe: boolean = false): Date {
         let d = date.getDate()
         return new Date(y + "/" + m + "/" + d)
     }
-    return new Date(date.getTime())
+    return date
 }
 
 export type dateType = boolean | number | string | Date
@@ -35,7 +35,7 @@ export function parseDate(date?: dateType, isWipe?: boolean): Date {
 
     // 日期
     if (date instanceof Date) {
-        return wipeOut(date, isWipe)
+        return wipeOut(new Date(date.getTime()), isWipe)
     }
 
     // 时间戳
@@ -43,29 +43,39 @@ export function parseDate(date?: dateType, isWipe?: boolean): Date {
         return wipeOut(new Date(date), isWipe)
     }
 
-    let gmt: string = ""
-    date = (date as string).trim().replace(/\s*GMT(?:[+-]\d{1,4})?$/i, function(match: string) {
-        gmt = " " + match.trim().toUpperCase()
-        return ""
-    })
-
-    if (/^\d{13,}$/.test(date)) {
-        date = parseInt(date)
-        if (gmt) {
-            return parseDate(getDate(date, "YYYY/MM/DD hh:mm:ss") + gmt, isWipe)
+    let ms: number = 0
+    if (!/Z$/i.test(date as string)) {
+        // 数字转化为毫秒
+        let dateArr = (date as string).match(/^(\d{13,})\s*(?:[Gg][Mm][Tt])?([+-][\d]{2}:?(?:[\d]{2})?)?$/)
+        if (dateArr) {
+            let dayTime = parseInt(dateArr[1])
+            if (dateArr[2]) {
+                let day = new Date(dayTime);
+                let val = new Date(day.getFullYear() + "/" + (day.getMonth() + 1) + "/" + day.getDate() + " " + day.getHours() + ":" + day.getMinutes() + ":" + day.getSeconds() + dateArr[2])
+                val.setMilliseconds(day.getMilliseconds())
+                return parseDate(val, isWipe);
+            }
+            return wipeOut(new Date(dayTime), isWipe)
         }
-        return wipeOut(new Date(date), isWipe)
-    }
 
-    if (!/Z$/i.test(date)) {
-        date = date
-        .replace(/^(\d{4})[-/]?(\d{1,2})[-/]?(\d{1,2})?[Tt+\s]?(\d{1,2})?:?(\d{1,2})?:?(\d{1,2})?(?:\.[\d]+)?(\+[\d]+)?$/, function(str, Y, M, D, h, m, s, g) {
-            return Y + "/" + M + "/" + (D || "00") + " " + (h || "00") + ":" + (m || "00") + ":" + (s || "00") + (g ? " GMT" + g : "")
-        })
+        // 特殊格式使用统一的
+        dateArr = (date as string).match(/^(?:#)?(\d{4})[-/]?(\d{1,2})?[-/]?(\d{1,2})?[Tt+\s]?(\d{1,2})?:?(\d{1,2})?:?(\d{1,2})?(?:\.?([\d]{1,3}))?\s*(?:[Gg][Mm][Tt])?([+-][\d]{2}:?(?:[\d]{2})?)?$/)
+        if (dateArr) {
+            let [, Y, M, D, h, m, s, mms, gmt] = dateArr
+            ms = parseInt(mms) || 0
+            date = Y + "/" + (M || "01") + "/" + (D || "01") + " " + (h || "00") + ":" + (m || "00") + ":" + (s || "00") + (gmt ? " " + gmt : "")
+        }
     }
 
     // 防止报错
-    return wipeOut(new Date(date + gmt), isWipe)
+    let val = new Date(date as string)
+    if (!isWipe) {
+        if (ms) {
+            val.setMilliseconds(ms)
+        }
+        return val
+    }
+    return wipeOut(val, isWipe)
 }
 
 // 格式化
@@ -74,7 +84,7 @@ function format(str: string, arr: string[], info: any): string {
         // 无格式化字符串
         return info
     }
-    str = str.replace(/<(\w+):(.*?)>/g, function(s0, s1, s2) {
+    str = str.replace(/<(\w+):(.*?)>/g, function (s0, s1, s2) {
         let val = info[s1]
         if (val && /[^0]/.test(String(val))) {
             return val + s2
@@ -122,8 +132,8 @@ export function getDate(date: dateType, formatStr: string): string
 export function getDate(date: dateType, formatStr: string = ""): dateProt | string {
     let theDate: Date = parseDate(date)
     let tZone: number = 0
-    if(formatStr) {
-        formatStr = formatStr.replace(/^([+-]\d+)([hm]):/i, function(match, n, uni) {
+    if (formatStr) {
+        formatStr = formatStr.replace(/^([+-]\d+)([hm]):/i, function (match, n, uni) {
             tZone = parseInt(n)
             if (uni == "h") {
                 tZone *= 60
@@ -179,7 +189,7 @@ export function getDate(date: dateType, formatStr: string = ""): dateProt | stri
     if (!formatStr) {
         return opt
     }
-    
+
     return format(formatStr, parseArr, opt)
 }
 
