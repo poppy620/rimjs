@@ -12,6 +12,8 @@ class Cache<T> {
 
     setData(data: T, inited: initedNum | Boolean = true) {
         if (inited == 2 || inited === true) {
+            // 补齐时间
+            this.date = new Date().getTime()
             // 为0，异常，不更新
             this.data = data
         }
@@ -36,7 +38,7 @@ function getKeyDef(para: any): string {
 }
 
 export interface IPromiseCacheBackFn<T = any> {
-    (para?: any) : Promise<T>
+    (para?: any): Promise<T>
     caches: Record<string, Cache<T>>
 }
 
@@ -64,8 +66,6 @@ export function promiseCache<T = any>(getFn: getDataFn, eTime: number = 0, getKe
 
             if (cache.inited < 1) {
                 cache.inited = 1
-                // 补齐时间
-                cache.date = new Date().getTime()
                 getFn(function(data, inited) {
                     cache.setData(data, inited)
                 }, para)

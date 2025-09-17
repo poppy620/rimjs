@@ -10,6 +10,8 @@ var Cache = /** @class */ (function () {
     Cache.prototype.setData = function (data, inited) {
         if (inited === void 0) { inited = true; }
         if (inited == 2 || inited === true) {
+            // 补齐时间
+            this.date = new Date().getTime();
             // 为0，异常，不更新
             this.data = data;
         }
@@ -55,8 +57,6 @@ function promiseCache(getFn, eTime, getKey) {
             cache.backs.push(resolve);
             if (cache.inited < 1) {
                 cache.inited = 1;
-                // 补齐时间
-                cache.date = new Date().getTime();
                 getFn(function (data, inited) {
                     cache.setData(data, inited);
                 }, para);
