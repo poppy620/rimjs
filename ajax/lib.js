@@ -488,6 +488,14 @@ function requestSend(param, course) {
     }
     // 确认短路径后
     this.emit("path", course);
+    if (req.awaitFn) {
+        // 有等待函数， 则 异步处理
+        req.awaitFn(course).then(function () {
+            // 等待函数处理完成后， 继续发送请求
+            exports.ajaxGlobal.fetchExecute(course, _this);
+        });
+        return;
+    }
     exports.ajaxGlobal.paramMerge(req, param);
     var method = (req.method = String(req.method || "get").toUpperCase());
     // 是否为 FormData
@@ -508,14 +516,6 @@ function requestSend(param, course) {
         }
     }
     req.url = req.formatURL;
-    if (req.awaitFn) {
-        // 有等待函数， 则 异步处理
-        req.awaitFn(course).then(function () {
-            // 等待函数处理完成后， 继续发送请求
-            exports.ajaxGlobal.fetchExecute(course, _this);
-        });
-        return;
-    }
     exports.ajaxGlobal.fetchExecute(course, this);
 }
 // 结束 统一处理返回的数据

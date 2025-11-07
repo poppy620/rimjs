@@ -565,6 +565,14 @@ function requestSend(this: Ajax, param: sendParam, course: AjaxCourse) {
 
     // 确认短路径后
     this.emit("path", course)
+    if (req.awaitFn) {
+        // 有等待函数， 则 异步处理
+        req.awaitFn(course).then(() => {
+            // 等待函数处理完成后， 继续发送请求
+            ajaxGlobal.fetchExecute(course, this)
+        })
+        return
+    }
 
     ajaxGlobal.paramMerge(req, param)
     let method = (req.method = String(req.method || "get").toUpperCase())
@@ -590,16 +598,6 @@ function requestSend(this: Ajax, param: sendParam, course: AjaxCourse) {
     }
 
     req.url = req.formatURL
-
-    if (req.awaitFn) {
-        // 有等待函数， 则 异步处理
-        req.awaitFn(course).then(() => {
-            // 等待函数处理完成后， 继续发送请求
-            ajaxGlobal.fetchExecute(course, this)
-        })
-        return
-    }
-
     ajaxGlobal.fetchExecute(course, this)
 }
 
