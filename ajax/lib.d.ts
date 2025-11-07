@@ -66,6 +66,7 @@ export declare class AjaxReq {
     isFormData: boolean;
     isCross: boolean;
     outFlag: boolean;
+    awaitFn?: (course: AjaxCourse) => Promise<void>;
     [propName: string]: any;
 }
 export declare class AjaxRes {

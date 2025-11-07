@@ -139,6 +139,9 @@ export class AjaxReq {
     isCross: boolean = false
     outFlag: boolean = false;
 
+    // 等待函数， 用于 异步处理
+    awaitFn?: (course: AjaxCourse) => Promise<void>
+
     [propName: string]: any
     // constructor() {}
 }
@@ -587,6 +590,15 @@ function requestSend(this: Ajax, param: sendParam, course: AjaxCourse) {
     }
 
     req.url = req.formatURL
+
+    if (req.awaitFn) {
+        // 有等待函数， 则 异步处理
+        req.awaitFn(course).then(() => {
+            // 等待函数处理完成后， 继续发送请求
+            ajaxGlobal.fetchExecute(course, this)
+        })
+        return
+    }
 
     ajaxGlobal.fetchExecute(course, this)
 }

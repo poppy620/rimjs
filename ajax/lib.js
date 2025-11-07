@@ -450,6 +450,7 @@ function ajaxAbort(req) {
 }
 // 发送数据整理
 function requestSend(param, course) {
+    var _this = this;
     var req = course.req;
     // console.log("xxxx", param, req);
     if (req.outFlag) {
@@ -507,6 +508,14 @@ function requestSend(param, course) {
         }
     }
     req.url = req.formatURL;
+    if (req.awaitFn) {
+        // 有等待函数， 则 异步处理
+        req.awaitFn(course).then(function () {
+            // 等待函数处理完成后， 继续发送请求
+            exports.ajaxGlobal.fetchExecute(course, _this);
+        });
+        return;
+    }
     exports.ajaxGlobal.fetchExecute(course, this);
 }
 // 结束 统一处理返回的数据
