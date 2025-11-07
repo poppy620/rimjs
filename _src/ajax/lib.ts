@@ -137,10 +137,10 @@ export class AjaxReq {
     formatURL: string = ""
     isFormData: boolean = false
     isCross: boolean = false
-    outFlag: boolean = false;
+    outFlag: boolean = false
 
     // 等待函数， 用于 异步处理
-    awaitFn?: (course: AjaxCourse) => Promise<void>
+    awaitFn?: (course: AjaxCourse) => Promise<void>;
 
     [propName: string]: any
     // constructor() {}
@@ -563,42 +563,42 @@ function requestSend(this: Ajax, param: sendParam, course: AjaxCourse) {
         req.formatURL = req.baseURL + req.formatURL
     }
 
+    let exec = () => {
+        ajaxGlobal.paramMerge(req, param)
+        let method = (req.method = String(req.method || "get").toUpperCase())
+        // 是否为 FormData
+        let isFormData = req.isFormData
+
+        // 请求类型
+        let dataType = (req.dataType = String(req.dataType || "").toLowerCase())
+
+        // 数据整理完成
+        this.emit("open", course)
+
+        // 还原,防止复写， 防止在 open中重写这些参数
+        req.isFormData = isFormData
+        req.dataType = dataType
+        req.method = method
+        if (method == "GET") {
+            let para = req.param as IParam
+            if (para && req.cache === false && !para._r_) {
+                // 加随机数，去缓存
+                para._r_ = getUUID()
+            }
+        }
+
+        req.url = req.formatURL
+        ajaxGlobal.fetchExecute(course, this)
+    }
+
     // 确认短路径后
     this.emit("path", course)
     if (req.awaitFn) {
         // 有等待函数， 则 异步处理
-        req.awaitFn(course).then(() => {
-            // 等待函数处理完成后， 继续发送请求
-            ajaxGlobal.fetchExecute(course, this)
-        })
+        req.awaitFn(course).then(exec)
         return
     }
-
-    ajaxGlobal.paramMerge(req, param)
-    let method = (req.method = String(req.method || "get").toUpperCase())
-    // 是否为 FormData
-    let isFormData = req.isFormData
-
-    // 请求类型
-    let dataType = (req.dataType = String(req.dataType || "").toLowerCase())
-
-    // 数据整理完成
-    this.emit("open", course)
-
-    // 还原,防止复写， 防止在 open中重写这些参数
-    req.isFormData = isFormData
-    req.dataType = dataType
-    req.method = method
-    if (method == "GET") {
-        let para = req.param as IParam
-        if (para && req.cache === false && !para._r_) {
-            // 加随机数，去缓存
-            para._r_ = getUUID()
-        }
-    }
-
-    req.url = req.formatURL
-    ajaxGlobal.fetchExecute(course, this)
+    exec()
 }
 
 // 结束 统一处理返回的数据

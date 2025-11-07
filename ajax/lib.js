@@ -486,37 +486,37 @@ function requestSend(param, course) {
         // 有baseURL 并且不是全量地址
         req.formatURL = req.baseURL + req.formatURL;
     }
+    var exec = function () {
+        exports.ajaxGlobal.paramMerge(req, param);
+        var method = (req.method = String(req.method || "get").toUpperCase());
+        // 是否为 FormData
+        var isFormData = req.isFormData;
+        // 请求类型
+        var dataType = (req.dataType = String(req.dataType || "").toLowerCase());
+        // 数据整理完成
+        _this.emit("open", course);
+        // 还原,防止复写， 防止在 open中重写这些参数
+        req.isFormData = isFormData;
+        req.dataType = dataType;
+        req.method = method;
+        if (method == "GET") {
+            var para = req.param;
+            if (para && req.cache === false && !para._r_) {
+                // 加随机数，去缓存
+                para._r_ = sole_1.default();
+            }
+        }
+        req.url = req.formatURL;
+        exports.ajaxGlobal.fetchExecute(course, _this);
+    };
     // 确认短路径后
     this.emit("path", course);
     if (req.awaitFn) {
         // 有等待函数， 则 异步处理
-        req.awaitFn(course).then(function () {
-            // 等待函数处理完成后， 继续发送请求
-            exports.ajaxGlobal.fetchExecute(course, _this);
-        });
+        req.awaitFn(course).then(exec);
         return;
     }
-    exports.ajaxGlobal.paramMerge(req, param);
-    var method = (req.method = String(req.method || "get").toUpperCase());
-    // 是否为 FormData
-    var isFormData = req.isFormData;
-    // 请求类型
-    var dataType = (req.dataType = String(req.dataType || "").toLowerCase());
-    // 数据整理完成
-    this.emit("open", course);
-    // 还原,防止复写， 防止在 open中重写这些参数
-    req.isFormData = isFormData;
-    req.dataType = dataType;
-    req.method = method;
-    if (method == "GET") {
-        var para = req.param;
-        if (para && req.cache === false && !para._r_) {
-            // 加随机数，去缓存
-            para._r_ = sole_1.default();
-        }
-    }
-    req.url = req.formatURL;
-    exports.ajaxGlobal.fetchExecute(course, this);
+    exec();
 }
 // 结束 统一处理返回的数据
 function responseEnd(course) {
