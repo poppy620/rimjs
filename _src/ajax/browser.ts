@@ -57,7 +57,7 @@ const host: string = window.location.host
 const hasFetch: boolean = !!window.fetch
 
 // ============================================== jsonp
-function jsonpSend(this: Ajax, course: AjaxCourse): void {
+async function jsonpSend(this: Ajax, course: AjaxCourse): Promise<void> {
     // req
     let { req, res } = course
 
@@ -101,6 +101,12 @@ function jsonpSend(this: Ajax, course: AjaxCourse): void {
 
     // 发送事件出发
     this.emit("send", course)
+
+    if (req.awaitSend) {
+        // 有等待函数， 则 异步处理
+        await req.awaitSend(course)
+    }
+
     // 发送请求
     loadJS(src, function() {
         backFun()
@@ -110,7 +116,7 @@ function jsonpSend(this: Ajax, course: AjaxCourse): void {
 /**
  * fetch 发送数据
  */
-function fetchSend(this: Ajax, course: AjaxCourse): void {
+async function fetchSend(this: Ajax, course: AjaxCourse): Promise<void> {
     let { req, res } = course
     // 方法
     let method = String(req.method || "GET").toUpperCase()
@@ -163,6 +169,11 @@ function fetchSend(this: Ajax, course: AjaxCourse): void {
     // 发送事件处理
     this.emit("send", course)
     option.body = req.body
+
+    if (req.awaitSend) {
+        // 有等待函数， 则 异步处理
+        await req.awaitSend(course)
+    }
 
     // 发送数据
     window.fetch(req.url, option).then(
@@ -260,7 +271,7 @@ function onload(this: Ajax, course: AjaxCourse): void {
  * xhr 发送数据
  * @returns {ajax}
  */
-function xhrSend(this: Ajax, course: AjaxCourse): void {
+async function xhrSend(this: Ajax, course: AjaxCourse): Promise<void> {
     let { res, req } = course
     // XHR
     req.xhr = new XMLHttpRequest()
@@ -320,6 +331,10 @@ function xhrSend(this: Ajax, course: AjaxCourse): void {
 
     // 发送前出发send事件
     this.emit("send", course)
+    if (req.awaitSend) {
+        // 有等待函数， 则 异步处理
+        await req.awaitSend(course)
+    }
 
     // 设置 header
     forEach(req.header, function(v, k) {

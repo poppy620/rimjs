@@ -43,7 +43,7 @@ ajaxGlobal.fetchExecute = function (course, ajax) {
 }
 
 // fetch 发送数据
-function httpRequest(this: Ajax, course: AjaxCourse): void {
+async function httpRequest(this: Ajax, course: AjaxCourse): Promise<void> {
     let { req, res } = course
     let isHttps = /^https:/.test(req.url)
     // 方法
@@ -93,6 +93,10 @@ function httpRequest(this: Ajax, course: AjaxCourse): void {
     }
 
     this.emit("send", course)
+    if (req.awaitSend) {
+        // 有等待函数， 则 异步处理
+        await req.awaitSend(course)
+    }
 
     let client = reqSend(src, option, cRes => {
         cRes.setEncoding("utf8")
