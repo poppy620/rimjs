@@ -1,0 +1,16 @@
+package.json
+  h_7292fc07057fb0 3
+_src/qs/index.ts
+  h_7292fc07057fb0 44-45,47
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.10",
+  "base_commit_sha": "3f5f9e3b1fb216e009695e13cdd855c98836b1f9",
+  "prompts": {},
+  "humans": {
+    "h_7292fc07057fb0": {
+      "author": "张钰峰 <zyf47976@ly.com>"
+    }
+  }
+}
