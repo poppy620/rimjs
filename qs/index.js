@@ -27,10 +27,10 @@ var QueryString = /** @class */ (function () {
             if (!item) {
                 return;
             }
-            var arr = item.split(eq);
-            var key = arr[0];
+            var arr = item.match(new RegExp("^([^" + eq + "]*)" + eq + "(.*)?$")) || [];
+            var key = arr[1] || "";
             if (key) {
-                var val = unescape(arr[1] || "");
+                var val = unescape(arr[2] || "");
                 if (data[key] === undefined) {
                     // 赋值
                     data[key] = val;

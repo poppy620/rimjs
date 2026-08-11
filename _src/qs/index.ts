@@ -41,10 +41,10 @@ export class QueryString {
                 if (!item) {
                     return
                 }
-                let arr = item.split(eq)
-                let key = arr[0]
+                let arr = item.match(new RegExp("^([^" + eq + "]*)" + eq + "(.*)?$")) || []
+                let key = arr[1] || ""
                 if (key) {
-                    let val = unescape(arr[1] || "")
+                    let val = unescape(arr[2] || "")
                     if (data[key] === undefined) {
                         // 赋值
                         data[key] = val
